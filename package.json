@@ -1,5 +1,5 @@
 {
-  "name": "@xkalf/mn-payment",
+  "name": "mn-payment",
   "license": "MIT",
   "version": "0.0.1",
   "main": "dist/index.js",
