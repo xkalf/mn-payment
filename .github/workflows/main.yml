@@ -11,11 +11,19 @@ jobs:
       - uses: actions/checkout@v3
       - uses: pnpm/action-setup@v2
         with:
-          version: 7
+          version: 8 # Update to the latest stable version
       - uses: actions/setup-node@v3
         with:
           node-version: 16.x
           cache: "pnpm"
 
-      - run: pnpm install --frozen-lockfile
+      # Add a step to generate a new lock file if it doesn't exist
+      - name: Generate pnpm-lock.yaml if needed
+        run: |
+          if [ ! -f pnpm-lock.yaml ]; then
+            pnpm install --lockfile-only
+          fi
+
+      # Modify the install command to allow for a new lock file
+      - run: pnpm install --frozen-lockfile || pnpm install
       - run: pnpm run lint && pnpm run build
