@@ -113,7 +113,7 @@ export class Qpay {
 		return res as TokenResponse;
 	}
 
-	async checkToken(token?: Token) {
+	private async checkToken(token?: Token) {
 		if (!token) {
 			token = await this.login();
 		}
