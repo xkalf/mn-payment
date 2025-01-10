@@ -1,3 +1,5 @@
+import { Token } from "./types";
+
 export type CreateInvoiceRequestInput = {
   sender_invoice_no: string;
   invoice_receiver_code: string;
@@ -58,13 +60,6 @@ export type InvoiceCheckResponse = {
   }>;
 };
 
-export type Token = {
-  access_token: string;
-  refresh_token: string;
-  refresh_expires_in: number;
-  expires_in: number;
-};
-
 export class Qpay {
   private username: string;
   private password: string;
@@ -114,11 +109,11 @@ export class Qpay {
   }
 
   private async checkToken(token?: Token) {
-    if (!token) {
+    if (!token || !token.refresh_expires_in) {
       token = await this.login();
     }
 
-    if (new Date(token.refresh_expires_in * 1000) <= new Date()) {
+    if (token.refresh_expires_in && new Date(token.refresh_expires_in * 1000) <= new Date()) {
       token = await this.login();
     } else {
       token = await this.getRefreshToken(token.refresh_token);
