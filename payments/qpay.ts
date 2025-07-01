@@ -1,6 +1,6 @@
 import { Token } from "./types";
 
-export type CreateInvoiceRequestInput = {
+type CreateInvoiceRequestInput = {
   sender_invoice_no: string;
   invoice_receiver_code: string;
   invoice_description: string;
@@ -8,7 +8,7 @@ export type CreateInvoiceRequestInput = {
   callback_url: string;
 };
 
-export type TokenResponse = {
+type TokenResponse = {
   token_type: string;
   refresh_expires_in: number;
   refresh_token: string;
@@ -19,7 +19,7 @@ export type TokenResponse = {
   session_state: string;
 };
 
-export type InvoiceResponse = {
+type InvoiceResponse = {
   invoice_id: string;
   qr_text: string;
   qr_image: string;
@@ -32,7 +32,7 @@ export type InvoiceResponse = {
   }[];
 };
 
-export type InvoiceCheckResponse = {
+type InvoiceCheckResponse = {
   count: number;
   paid_amount: number;
   rows: Array<{
@@ -123,7 +123,7 @@ export class Qpay {
   }
 
   async createInvoice(input: CreateInvoiceRequestInput, token?: Token) {
-    token = await this.checkToken();
+    token = await this.checkToken(token);
 
     const req = await fetch(`${this.baseUrl}/v2/invoice`, {
       method: "POST",

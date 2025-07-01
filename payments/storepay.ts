@@ -50,7 +50,7 @@ export class StorePay {
   private appPassword: string;
   private baseUrl = 'https://service.storepay.mn:8778'
 
-  constructor(username: string, password: string, appUsername: string, appPassword: string) {
+  constructor(username: string = '88004454', password: string = '88004454', appUsername: string = 'merchantapp1', appPassword: string = 'EnRZA3@B') {
     this.username = username;
     this.password = password;
     this.appUsername = appUsername;
@@ -60,14 +60,16 @@ export class StorePay {
   async login() {
     const req = await fetch(`${this.baseUrl}/merchant-uaa/oauth/token`, {
       method: 'POST',
-      body: JSON.stringify({
-        grant_type: "password",
+      body: new URLSearchParams({
         username: this.username,
         password: this.password,
-      }),
+        grant_type: "password",
+      }).toString(),
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
-        Authorization: `Basic ${btoa(`${this.appUsername}:${this.appPassword}`)}`,
+        Authorization: `Basic ${Buffer.from(
+          `${this.appUsername}:${this.appPassword}`,
+        ).toString("base64")}`,
       }
     })
 
@@ -100,13 +102,14 @@ export class StorePay {
       body: JSON.stringify(input),
       headers: {
         Authorization: `Bearer ${token.access_token}`,
+        'Content-Type': 'application/json',
       }
     })
 
     const res = await req.json()
 
-    if (res.data.status !== 'Success') {
-      throw Error(res.data.msgList[0].text);
+    if (res.status !== 'Success') {
+      throw Error(res.msgList[0].text);
     }
 
     return {
@@ -121,7 +124,9 @@ export class StorePay {
     const req = await fetch(`${this.baseUrl}/lend-merchant/merchant/loan/check/${invoiceId}`, {
       method: 'GET',
       headers: {
-        Authorization: `Bearer ${token.access_token}`
+        Authorization: `Bearer ${token.access_token}`,
+        'Content-Type': 'application/json',
+
       }
     })
 
