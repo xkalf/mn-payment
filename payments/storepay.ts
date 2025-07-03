@@ -1,4 +1,4 @@
-import { Token } from "./types"
+import { SaveToken, Token } from "./types"
 
 type CreateInvoiceRequestInput = {
   storeId: number;
@@ -49,12 +49,14 @@ export class StorePay {
   private appUsername: string;
   private appPassword: string;
   private baseUrl = 'https://service.storepay.mn:8778'
+  private saveToken?: SaveToken
 
-  constructor(username: string = '88004454', password: string = '88004454', appUsername: string = 'merchantapp1', appPassword: string = 'EnRZA3@B') {
+  constructor(username: string, password: string, appUsername: string, appPassword: string, saveToken?: SaveToken) {
     this.username = username;
     this.password = password;
     this.appUsername = appUsername;
     this.appPassword = appPassword;
+    this.saveToken = saveToken
   }
 
   async login() {
@@ -82,13 +84,19 @@ export class StorePay {
     return res as TokenResponse
   }
 
-  private async checkToken(token?: Token) {
+  private async checkToken(inputToken?: Token) {
+    let token = inputToken
+
     if (!token) {
       token = await this.login()
     }
 
     if (new Date(token.expires_in * 1000) <= new Date()) {
       token = await this.login()
+    }
+
+    if (this.saveToken && JSON.stringify(inputToken) !== JSON.stringify(token)) {
+      await this.saveToken(token)
     }
 
     return token

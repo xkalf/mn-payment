@@ -1,4 +1,4 @@
-import { Token } from "./types";
+import { SaveToken, Token } from "./types";
 
 type TokenResponse = {
   success: true;
@@ -61,13 +61,15 @@ type InvoiceCheckResponse = {
 export class UbPay {
   private clientId: string;
   private clientSecret: string;
+  private saveToken?: SaveToken
 
   private baseUrl = "https://merchant-payment-api.dev.p.ubcabtech.com";
 
-  constructor(clientId: string, clientSecret: string, baseUrl?: string) {
+  constructor(clientId: string, clientSecret: string, saveToken?: SaveToken, baseUrl?: string) {
     this.clientId = clientId;
     this.clientSecret = clientSecret;
     this.baseUrl = baseUrl || this.baseUrl;
+    this.saveToken = saveToken;
   }
 
   async login(): Promise<Token> {
@@ -110,7 +112,9 @@ export class UbPay {
     }
   }
 
-  private async checkToken(token?: Token) {
+  private async checkToken(inputToken?: Token) {
+    let token: Token | undefined = inputToken
+
     if (!token || !token.refresh_expires_in) {
       token = await this.login();
     }
@@ -121,6 +125,10 @@ export class UbPay {
       new Date(token.expires_in * 1000) <= new Date()
     ) {
       token = await this.getRefreshToken(token);
+    }
+
+    if (this.saveToken && JSON.stringify(inputToken) !== JSON.stringify(token)) {
+      await this.saveToken(token);
     }
 
     return token;

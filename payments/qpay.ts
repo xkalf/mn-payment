@@ -1,4 +1,4 @@
-import { Token } from "./types";
+import { SaveToken, Token } from "./types";
 
 type CreateInvoiceRequestInput = {
   sender_invoice_no: string;
@@ -64,12 +64,14 @@ export class Qpay {
   private username: string;
   private password: string;
   private invoiceCode: string;
+  private saveToken?: SaveToken
   private baseUrl = "https://merchant.qpay.mn";
 
-  constructor(username: string, password: string, invoiceCode: string) {
+  constructor(username: string, password: string, invoiceCode: string, saveToken?: SaveToken) {
     this.username = username;
     this.password = password;
     this.invoiceCode = invoiceCode;
+    this.saveToken = saveToken;
   }
 
   private async login() {
@@ -122,7 +124,9 @@ export class Qpay {
     } satisfies Token
   }
 
-  private async checkToken(token?: Token) {
+  private async checkToken(inputToken?: Token) {
+    let token = inputToken
+
     if (!token || !token.refresh_expires_in) {
       token = await this.login()
     }
@@ -133,6 +137,10 @@ export class Qpay {
       new Date(token.expires_in * 1000) <= new Date()
     ) {
       token = await this.getRefreshToken(token.refresh_token);
+    }
+
+    if (this.saveToken && JSON.stringify(inputToken) !== JSON.stringify(token)) {
+      await this.saveToken(token);
     }
 
     return token;

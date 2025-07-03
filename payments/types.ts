@@ -4,3 +4,5 @@ export type Token = {
   refresh_expires_in?: number;
   expires_in: number;
 };
+
+export type SaveToken = (token: Token) => Promise<void>
