@@ -5,8 +5,8 @@ type TokenResponse = {
   data: {
     refreshToken: string;
     accessToken: string;
-    refreshTokenExpriresIn: string;
-    accessTokenExpriresIn: string;
+    refreshTokenExpiresIn: number,
+    accessTokenExpiresIn: number;
     tokenType: string;
   }
 } | {
@@ -88,8 +88,8 @@ export class UbPay {
     return {
       access_token: res.data.accessToken,
       refresh_token: res.data.refreshToken,
-      refresh_expires_in: parseInt(res.data.refreshTokenExpriresIn, 10),
-      expires_in: parseInt(res.data.accessTokenExpriresIn, 10)
+      refresh_expires_in: res.data.refreshTokenExpiresIn,
+      expires_in: res.data.accessTokenExpiresIn
     }
   }
 
@@ -117,7 +117,9 @@ export class UbPay {
 
     if (token.refresh_expires_in && new Date(token.refresh_expires_in * 1000) <= new Date()) {
       token = await this.login();
-    } else {
+    } else if (
+      new Date(token.expires_in * 1000) <= new Date()
+    ) {
       token = await this.getRefreshToken(token);
     }
 
@@ -138,20 +140,26 @@ export class UbPay {
 
     const res: CreateInvoiceResponse = await req.json()
 
-    return res
+    return {
+      data: res,
+      token
+    }
   }
 
   async checkInvoice(invoiceId: string, token?: Token) {
     token = await this.checkToken(token)
 
-    const req = await fetch(`${this.baseUrl}/api/invoices/${invoiceId}`, {
+    const req = await fetch(`${this.baseUrl}/api/v1/invoices/${invoiceId}`, {
       headers: {
         Authorization: `Bearer ${token.access_token}`,
       }
     })
 
-    const res = await req.json()
+    const res: InvoiceCheckResponse = await req.json()
 
-    return res as InvoiceCheckResponse
+    return {
+      data: res,
+      token
+    }
   }
 }

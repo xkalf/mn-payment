@@ -87,7 +87,14 @@ export class Qpay {
       throw new Error(res.message);
     }
 
-    return res as TokenResponse;
+    const response = res as TokenResponse
+
+    return {
+      access_token: response.access_token,
+      refresh_token: response.refresh_token,
+      expires_in: response.expires_in,
+      refresh_expires_in: response.refresh_expires_in,
+    } satisfies Token
   }
 
   private async getRefreshToken(refreshToken: string) {
@@ -105,17 +112,26 @@ export class Qpay {
       throw new Error(res.message);
     }
 
-    return res as TokenResponse;
+    const response = res as TokenResponse
+
+    return {
+      access_token: response.access_token,
+      refresh_token: response.refresh_token,
+      expires_in: response.expires_in,
+      refresh_expires_in: response.refresh_expires_in,
+    } satisfies Token
   }
 
   private async checkToken(token?: Token) {
     if (!token || !token.refresh_expires_in) {
-      token = await this.login();
+      token = await this.login()
     }
 
     if (token.refresh_expires_in && new Date(token.refresh_expires_in * 1000) <= new Date()) {
       token = await this.login();
-    } else {
+    } else if (
+      new Date(token.expires_in * 1000) <= new Date()
+    ) {
       token = await this.getRefreshToken(token.refresh_token);
     }
 
